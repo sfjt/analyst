@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chart {{ pagination.current }}</title>
+  </head>
+  <body>
+    <h1>Chart {{ pagination.current }}</h1>
+    <p> / {{ pagination.total }}</p>
+
+    {% for c in charts %}
+      <h2>{{ c.ticker }}</h2>
+      <p><img class="chart" data-ticker="{{ c.ticker }}" src="/charts/simple/{{ task_id }}/{{ c.ticker }}" /></p>
+    {% endfor %}
+
+    {% if pagination.prev %}
+      <a href="/screener/{{ task_id }}/{{ pagination.prev }}">&lt; prev</a>
+    {% endif %}
+    {% if pagination.next %}
+      <a href="/screener/{{ task_id }}/{{ pagination.next }}">next &gt;</a>
+    {% endif %}
+  </body>
+</html>
