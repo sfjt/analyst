@@ -11,7 +11,8 @@ from dotenv import load_dotenv
 
 from .task_base import AnalystTaskBase
 from .helpers import date_window, mongo_uri
-from .algo.example import find_peak_and_trough, up_x_times_from_lowest
+from .algo.filter import up_x_times_from_lowest
+from .algo.preprocess import find_peak_and_trough
 
 load_dotenv()
 

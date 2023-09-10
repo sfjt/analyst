@@ -4,7 +4,7 @@ from pandas import DataFrame
 
 from .helpers import mongo_uri
 from .screener import ScreenerTask
-from .algo.example import simple_plot
+from .algo.plot import simple_plot
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = mongo_uri()

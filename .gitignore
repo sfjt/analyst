@@ -4,9 +4,6 @@
 __pycache__/
 .pytest_cache/
 
-analyst/algo/**/*
-!analyst/algo/example.py
-!analyst/algo/__init__.py
 .env
 tests/fixtures/polygon_rest/aggregates.json
 

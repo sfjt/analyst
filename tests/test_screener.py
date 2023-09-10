@@ -29,10 +29,6 @@ class DummyAgg:
         self.timestamp = data["timestamp"]
 
 
-class TestError(Exception):
-    pass
-
-
 class TestScreenerTask:
     def setup_method(self):
         self.mock_client = MongoClient()
