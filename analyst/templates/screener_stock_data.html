@@ -4,12 +4,12 @@
     <title>Chart {{ pagination.current }}</title>
   </head>
   <body>
-    <h1>Chart {{ pagination.current }}</h1>
-    <p> / {{ pagination.total }}</p>
+    <h1>Stock Data</h1>
+    <p>{{ pagination.current }} / {{ pagination.total }}</p>
 
     {% for c in charts %}
-      <h2>{{ c.ticker }}</h2>
-      <p><img class="chart" data-ticker="{{ c.ticker }}" src="/charts/simple/{{ task_id }}/{{ c.ticker }}" /></p>
+      <h2>{{ c.symbol }}</h2>
+      <p><a href="/chart/simple/{{ c.symbol }}" target="_blank"/>Chart</a></p>
     {% endfor %}
 
     {% if pagination.prev %}

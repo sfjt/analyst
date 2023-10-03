@@ -5,12 +5,19 @@ from mongomock import MongoClient
 
 from analyst.server import app, mongo
 from analyst.screener import ScreenerTask
+from analyst.web_api import GetStockDataTask
 
-snapshot_file_path = Path.cwd() / "tests/fixtures/polygon_rest/aggregates.json"
+DB_NAME = ScreenerTask.DB_NAME
+TASK_COLLECTION_NAME = ScreenerTask.TASK_COLLECTION_NAME
+STOCK_DATA_COLLECTION_NAME = ScreenerTask.STOCK_DATA_COLLECTION_NAME
+
+snapshot_file_path = Path.cwd() / "tests/fixtures/stock_snapshot.json"
+with open(snapshot_file_path, "r", encoding="utf-8") as f:
+    stock_snapshot = json.load(f)
 
 
-def dummy_filter(df):
-    return True, df.copy()
+def pass_all(data):
+    return True, data
 
 
 class TestServer:
@@ -28,38 +35,48 @@ class TestServer:
         resp = self.app.get("/screener")
         assert resp.text.find("No tasks found.") > -1
 
-        t1 = ScreenerTask("Test Screener 1", [], dummy_filter, self.mongo_client)
-        t1.mark_start()
-        t1.mark_complete()
-        t2 = ScreenerTask("Test Screener 2", [], dummy_filter, self.mongo_client)
-        t2.mark_start()
-        t2.mark_complete()
+        get_stock_data_task = GetStockDataTask("Test Get Data Task", self.mongo_client)
+        get_stock_data_task.mark_start()
+        get_stock_data_task.mark_complete()
+        screener_task_complete = ScreenerTask(
+            "Test Screener Task",
+            get_stock_data_task.task_id,
+            pass_all,
+            self.mongo_client,
+        )
+        screener_task_complete.mark_start()
+        screener_task_complete.mark_complete()
+        screener_task_incomplete = ScreenerTask(
+            "Test Screener Task 2",
+            get_stock_data_task.task_id,
+            pass_all,
+            self.mongo_client,
+        )
+        screener_task_incomplete.mark_start()
         resp = self.app.get("/screener")
-        assert resp.text.find("Test Screener 1") > -1
-        assert resp.text.find("Test Screener 2") > -1
+        assert resp.text.find("Test Get Data Task (complete,") > -1
+        assert resp.text.find("Test Screener Task (complete,") > -1
+        assert resp.text.find("Test Screener Task 2 (incomplete,") > -1
 
     def test_screener_result(self):
-        num_limit = 5
+        num_per_page = 5
         num_pages = 3
-        db_name = ScreenerTask.DB_NAME
-        ticker_collection_name = ScreenerTask.TICKER_COLLECTION_NAME
-        ticker_collection = self.mongo_client[db_name][ticker_collection_name]
-        with open(snapshot_file_path, "r", encoding="utf-8") as f:
-            aggs_snapshot = json.load(f)
-        task_id = "t1"
-        for i in range(0, num_pages * num_limit):
-            ticker_collection.insert_one(
+        stock_data_collection = self.mongo_client[DB_NAME][STOCK_DATA_COLLECTION_NAME]
+        task_id = "TEST"
+        docs = []
+        for i in range(0, num_pages * num_per_page):
+            docs.append(
                 {
-                    "task_id": task_id,
-                    "ticker": "TEST",
-                    "data": aggs_snapshot,
+                    "taskId": task_id,
+                    "symbol": stock_snapshot["symbol"],
+                    "data": stock_snapshot["data"],
                 }
             )
-
+        stock_data_collection.insert_many(docs)
         resp = self.app.get(f"/screener/{task_id}/1")
         assert resp.text.find("prev") == -1
         assert resp.text.find("next") > -1
-        assert resp.text.count("<img") == num_limit
+        assert resp.text.count("<img") == num_per_page
         resp = self.app.get(f"/screener/{task_id}/2")
         assert resp.text.find("prev") > -1
         assert resp.text.find("next") > -1
@@ -68,20 +85,19 @@ class TestServer:
         assert resp.text.find("next") == -1
 
     def test_simple_candlestick_chart(self):
-        db_name = ScreenerTask.DB_NAME
-        ticker_collection_name = ScreenerTask.TICKER_COLLECTION_NAME
-        ticker_collection = self.mongo_client[db_name][ticker_collection_name]
+        collection = self.mongo_client[DB_NAME][STOCK_DATA_COLLECTION_NAME]
         with open(snapshot_file_path, "r", encoding="utf-8") as f:
-            aggs_snapshot = json.load(f)
-        task_id = "t2"
-        ticker = "TEST"
-        ticker_collection.insert_one(
+            stock_data_snapshot = json.load(f)
+        task_id = "dummyId"
+        symbol = "TEST"
+        stock_data_snapshot["symbol"]["symbol"] = symbol
+        collection.insert_one(
             {
                 "task_id": task_id,
-                "ticker": ticker,
-                "data": aggs_snapshot,
+                "symbol": stock_data_snapshot["symbol"],
+                "data": stock_data_snapshot["data"],
             }
         )
 
-        resp = self.app.get(f"/charts/simple/{task_id}/{ticker}")
+        resp = self.app.get(f"/chart/simple/{symbol}")
         assert resp.content_type == "image/jpeg"

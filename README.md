@@ -7,7 +7,7 @@ A personal, experimental financial analysis tool.
 ### Prerequisites
 
 1. Have [Python](https://www.python.org/) ^3.11, [poetry](https://python-poetry.org/), and [docker](https://www.docker.com/) installed.
-2. Get a [polygon.io](https://polygon.io/) API Key.
+2. Get a [Financial Modeling Prep](https://site.financialmodelingprep.com/) API Key.
 
 (**Caveat:** You may hit the rate limit if you use the free API key.)
 

@@ -13,33 +13,27 @@ def prep_chart_dataframe(df: DataFrame) -> DataFrame:
     """Update column names and the index of a DataFrame
     so mplfinance can plot a candlestick chart.
 
-    :param df: A DataFrame of price moves.
+    :param df: A Dataframe of historical price moves.
     """
-    df = df.rename(
-        columns={
-            "open": "Open",
-            "high": "High",
-            "low": "Low",
-            "close": "Close",
-            "volume": "Volume",
-        }
-    )
-    df["Time"] = pd.to_datetime(df["timestamp"], unit="ms", origin="unix")
-    df = df.set_index("Time")
+    df["date"] = pd.to_datetime(df["date"])
+    df = df.set_index("date")
+    df = df.sort_index(ascending=True)
     return df
 
 
-def simple_plot(df: DataFrame) -> bytes:
+def simple_plot(df: DataFrame, days: int, w: int, h: int) -> bytes:
     """Plots simple candlestick chart.
 
     :param df: A DataFrame of price moves.
+    :param days: Days to display.
+    :param w: The figsize width.
+    :param h: The figsize height.
     :return: The chart image.
     """
     df = prep_chart_dataframe(df)
+    idx = -1 * days
+    df = df[idx:]
     image_bytes = io.BytesIO()
-    mplfinance.plot(
-        df, type="candle", volume=True, savefig=image_bytes, figsize=(15, 6)
-    )
+    mplfinance.plot(df, type="candle", volume=True, savefig=image_bytes, figsize=(w, h))
     pyplot.savefig(image_bytes, format="jpg")
-
     return image_bytes.getvalue()

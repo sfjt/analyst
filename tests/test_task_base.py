@@ -17,7 +17,7 @@ class TestAnalystTaskBase:
     def test_mark_start(self):
         task = AnalystTaskBase("Test Incomplete", self.mock_client)
         task.mark_start()
-        doc = self.task_collection.find_one({"task_id": task.task_id})
+        doc = self.task_collection.find_one({"taskId": task.task_id})
         assert not doc["complete"]
         assert doc["description"] == task.description
         assert doc["started"] == task.timestamp
@@ -27,8 +27,9 @@ class TestAnalystTaskBase:
         task = AnalystTaskBase("Test Complete", self.mock_client)
         task.mark_start()
         task.mark_complete()
-        doc = self.task_collection.find_one({"task_id": task.task_id})
+        doc = self.task_collection.find_one({"taskId": task.task_id})
         assert doc["complete"]
         assert doc["description"] == task.description
+        assert doc["taskType"] == task.task_type
         assert doc["started"] == task.timestamp
         assert isinstance(doc["ended"], str)
