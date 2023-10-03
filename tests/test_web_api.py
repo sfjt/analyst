@@ -90,7 +90,6 @@ class TestGetStockDataTask:
         count = self.screener_collection.count_documents(filter_)
         doc = self.screener_collection.find_one(filter_)
         assert count == 1
-        assert doc["description"] == "TEST"
         assert len(doc["tickerSymbols"]) == len(mock_filtered_ticker_symbols)
 
     def test_run(self, mocker):

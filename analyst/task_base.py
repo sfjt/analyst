@@ -6,6 +6,7 @@ from bson import ObjectId
 
 
 class AnalystTaskBase:
+    TASK_TYPE = "task_base"
     DB_NAME = "analyst"
     TASK_COLLECTION_NAME = "tasks"
     STOCK_DATA_COLLECTION_NAME = "stockdata"
@@ -21,7 +22,10 @@ class AnalystTaskBase:
         self._db_client = db_client
         self.description = description
         self.document_id: None | ObjectId = None
-        self.task_type = "base"
+
+    @property
+    def task_type(self):
+        return AnalystTaskBase.TASK_TYPE
 
     @property
     def task_collection(self):

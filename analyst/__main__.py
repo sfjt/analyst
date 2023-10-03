@@ -1,7 +1,6 @@
 import argparse
 
-
-# from .screener import screen
+from .screener import run_screener_task
 from .web_api import run_get_stock_data_task
 
 parser = argparse.ArgumentParser(
@@ -9,8 +8,8 @@ parser = argparse.ArgumentParser(
 )
 subparsers = parser.add_subparsers()
 
-# parser_screener = subparsers.add_parser("screener")
-# parser_screener.set_defaults(fn=screen)
+parser_screener = subparsers.add_parser("screener")
+parser_screener.set_defaults(fn=run_screener_task)
 
 parser_get_stock_data = subparsers.add_parser("getstockdata")
 parser_get_stock_data.set_defaults(fn=run_get_stock_data_task)

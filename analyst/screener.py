@@ -14,6 +14,8 @@ logger = logging.getLogger("analyst")
 
 
 class ScreenerTask(AnalystTaskBase):
+    TASK_TYPE = "screener"
+
     def __init__(
         self,
         description: str,
@@ -24,20 +26,26 @@ class ScreenerTask(AnalystTaskBase):
         """A task filters the stock data saved in the database.
 
         :param description: A description of the task.
-        :param target_task_id: The task id of GetStockDataTask
-        or ScreenerTask.
+        :param target_task_id: The task id of a ScreenerTask.
         :param filter_fn: A filtering function.
         :param db_client: A MongoClient instance.
         """
         super().__init__(description, db_client)
         self.source_symbols = []
         self.filtered_symbols = []
-        self.task_type = "screener"
         self._filter_fn = filter_fn
         self._target_task_id = target_task_id
 
+    @property
+    def task_type(self):
+        return ScreenerTask.TASK_TYPE
+
     def single_get_and_filter(self, symbol_name: str):
-        """
+        """Gets a single stock data from the database
+        and applies filter_fn.
+        Then saves the symbol name to self.filtered_symbols list
+        if it matches the given criteria.
+
         :param symbol_name: A ticker symbol.
         """
         data = self.get_stock_data_from_db(symbol_name)
@@ -53,28 +61,39 @@ class ScreenerTask(AnalystTaskBase):
         if filter_result:
             self.filtered_symbols.append(symbol_name)
 
-    def get_stock_data_from_db(self, symbol_name: str):
+    def get_stock_data_from_db(self, symbol_name: str) -> dict:
+        """Gets a single stock data from the database.
+
+        :param symbol_name: A ticker symbol name.
+        """
         filter_ = {
             "taskId": self._target_task_id,
             "symbol.symbol": symbol_name,
         }
         return self.stock_data_collection.find_one(filter_)
 
-    def get_symbols_list_from_db(self):
+    def get_symbols_list_from_db(self) -> list[str]:
+        """Gets a ticker symbols lisf of a preceding
+        screener task (target_task_id).
+        """
         filter_ = {"taskId": self._target_task_id}
         symbols = self.screener_collection.find_one(filter_)
         return symbols["tickerSymbols"]
 
     def save_filter_result(self):
+        """Saves the filter result (self.filtered_symbols) to the database."""
         self.screener_collection.insert_one(
             {
                 "taskId": self.task_id,
-                "description": self.description,
                 "tickerSymbols": self.filtered_symbols,
             }
         )
 
     def run(self):
+        """Gets a target ticker symbols list from a preceding screener task
+        then apply filter_fn to the stock data stored in the database.
+        Requires the GetStockDataTask result saved in the database.
+        """
         self.mark_start()
         logger.info("Getting ticker symbols.")
         self.source_symbols = self.get_symbols_list_from_db()
@@ -92,3 +111,8 @@ class ScreenerTask(AnalystTaskBase):
         self.save_filter_result()
         logger.info("Done.")
         self.mark_complete()
+
+
+def run_screener_task():
+    """Runs a screener task"""
+    pass

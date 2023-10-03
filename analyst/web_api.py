@@ -23,6 +23,7 @@ logger = logging.getLogger("analyst")
 
 
 class GetStockDataTask(AnalystTaskBase):
+    TASK_TYPE = "get_stock_data"
     REQUESTS_PER_SYMBOL = 2
     RATE_LIMIT_BUFFER = 10
     DELAY_PER_SYMBOL = 0.2
@@ -36,7 +37,10 @@ class GetStockDataTask(AnalystTaskBase):
         """
         super().__init__(description, db_client)
         self.symbols = []
-        self.task_type = "get_stock_data"
+
+    @property
+    def task_type(self):
+        return GetStockDataTask.TASK_TYPE
 
     def get_single_stock_data_and_save(self, symbol: dict):
         """Get a single stock data and save it to the database.
@@ -63,14 +67,16 @@ class GetStockDataTask(AnalystTaskBase):
         self.screener_collection.insert_one(
             {
                 "taskId": self.task_id,
-                "description": self.description,
                 "tickerSymbols": [s["symbol"] for s in symbols],
             }
         )
 
     def run(self):
-        """Get all stock ticker symbols and their data.
-        Quarterly financial statements and daily OHLC(+V) prices.
+        """Get US stock ticker symbols and data
+        And save it to the database.
+        Also saves the list of the ticker symbols
+        as a screener result (without filtering)
+        so following ScreenerTask can refer to it.
         """
         self.mark_start()
         logger.info("Getting a list of stock ticker symbols.")
@@ -184,7 +190,7 @@ def get_daily_prices(symbol: str, from_: str = "", to: str = ""):
 def get_ticker_symbols() -> list[dict]:
     """https://site.financialmodelingprep.com/developer/docs/#Symbols-List
 
-    :return: All stock ticker symbols.
+    :return: Get US stock ticker symbols.
     """
     url = f"{BASE_URL}stock/list"
     params = {

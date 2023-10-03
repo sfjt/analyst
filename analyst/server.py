@@ -24,6 +24,12 @@ def stock_data_collection():
     return mongo.cx[db_name][collection_name]
 
 
+def screener_collection():
+    db_name = ScreenerTask.DB_NAME
+    collection_name = ScreenerTask.SCREENER_COLLECTION_NAME
+    return mongo.cx[db_name][collection_name]
+
+
 @app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
@@ -33,21 +39,28 @@ def index():
 def screener_tasks_list():
     default_limit = 100
     limit = request.args.get("limit", default_limit)
-    task_cursor = task_collection().find().sort("started", DESCENDING)
+    filter_ = {"taskType": "screener"}
+    task_cursor = task_collection().find(filter_).sort("started", DESCENDING)
     tasks = []
     for t in task_cursor.limit(limit):
         tasks.append(t)
     return render_template("screener_tasks_list.html", tasks=tasks)
 
 
-@app.route("/screener/<task_id>/<page>")
-def screener_result(task_id, page):
+@app.route("/screener/<task_id>/<page>", methods=["GET"])
+def screener_result_list(task_id, page):
     num_per_page = 5
     current_page_index = int(page)
     num_displayed = (current_page_index - 1) * num_per_page
+    filter_task_id = {"taskId": task_id}
+    screener_result = screener_collection().find_one(filter_task_id)
+    symbols = screener_result["tickerSymbols"]
+    filter_symbols = {"symbol.symbol": {"$in": symbols}}
 
-    stock_data_cursor = stock_data_collection().find({"taskId": task_id}).sort("symbol.symbol", ASCENDING)
-    num_total = stock_data_collection().count_documents({"taskId": task_id})
+    stock_data_cursor = (
+        stock_data_collection().find(filter_symbols).sort("symbol.symbol", ASCENDING)
+    )
+    num_total = stock_data_collection().count_documents(filter_symbols)
 
     next_page_index = None
     if num_total > (num_displayed + num_per_page):
@@ -64,18 +77,17 @@ def screener_result(task_id, page):
 
     charts = []
     for s in stock_data_cursor.skip(num_displayed).limit(num_per_page):
-        charts.append(
-            {
-                "symbol": s["symbol"]["symbol"]
-            }
-        )
+        charts.append({"symbol": s["symbol"]["symbol"]})
 
     return render_template(
-        "screener_stock_data.html", charts=charts, pagination=pagination, task_id=task_id
+        "screener_stock_data.html",
+        charts=charts,
+        pagination=pagination,
+        task_id=task_id,
     )
 
 
-@app.route("/chart/simple/<symbol>")
+@app.route("/chart/simple/<symbol>", methods=["GET"])
 def simple_candlestick_chart(symbol):
     default_days = 100
     days = request.args.get("days", default_days)
