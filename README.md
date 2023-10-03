@@ -9,7 +9,7 @@ A personal, experimental financial analysis tool.
 1. Have [Python](https://www.python.org/) ^3.11, [poetry](https://python-poetry.org/), and [docker](https://www.docker.com/) installed.
 2. Get a [Financial Modeling Prep](https://site.financialmodelingprep.com/) API Key.
 
-(**Caveat:** You may hit the rate limit if you use the free API key.)
+**(You may hit the rate limit if you use the free API key.)**
 
 ### Start a development environment
 
@@ -24,8 +24,14 @@ A personal, experimental financial analysis tool.
    poetry config virtualenvs.in-project true # To create venv in the project directory.
    poetry install
    poetry shell
-   ./start_dev.sh # You may want to chmod before executing script.
+   ./start_dev.sh # Chmod before executing script.
    ```
-3. Run a CLI command defined in `analyst.__main__.py`; for example `python -m analyst screener`
-4. Open the local flask server with your browser to check results.
+3. Run a CLI command defined in `analyst.__main__.py` to start a task.
+4. Once the task is complete, open the local flask server to check results.
 5. Run `docker compose down` to tear down.
+
+## Usage
+
+### Commands
+
+(TBW)
