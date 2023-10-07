@@ -3,7 +3,6 @@ from datetime import date
 import logging.config
 from concurrent.futures import ThreadPoolExecutor
 from time import sleep
-from copy import deepcopy
 
 from pymongo import MongoClient
 import requests

@@ -6,14 +6,9 @@ from mongomock import MongoClient
 
 from analyst.screener import ScreenerTask
 
-DB_NAME = ScreenerTask.DB_NAME
-STOCK_DATA_COLLECTION_NAME = ScreenerTask.STOCK_DATA_COLLECTION_NAME
-SCREENER_COLLECTION_NAME = ScreenerTask.SCREENER_COLLECTION_NAME
-TASK_COLLECTION_NAME = ScreenerTask.TASK_COLLECTION_NAME
-
 snapshot_file_path = Path.cwd() / "tests/fixtures/stock_snapshot.json"
 with open(snapshot_file_path, "r", encoding="utf-8") as f:
-    stock_snapshot = json.load(f)
+    stock_data_snapshot = json.load(f)
 
 
 def pass_one(data):
@@ -26,11 +21,15 @@ def pass_one(data):
 
 class TestScreenerTask:
     def setup_method(self):
+        db_name = ScreenerTask.DB_NAME
+        stock_data_collection_name = ScreenerTask.STOCK_DATA_COLLECTION_NAME
+        screener_collection_name = ScreenerTask.SCREENER_COLLECTION_NAME
+        task_collection_name = ScreenerTask.TASK_COLLECTION_NAME
         client = MongoClient()
         self.mock_client = client
-        self.stock_data_collection = client[DB_NAME][STOCK_DATA_COLLECTION_NAME]
-        self.screener_collection = client[DB_NAME][SCREENER_COLLECTION_NAME]
-        self.task_collection = client[DB_NAME][TASK_COLLECTION_NAME]
+        self.stock_data_collection = client[db_name][stock_data_collection_name]
+        self.screener_collection = client[db_name][screener_collection_name]
+        self.task_collection = client[db_name][task_collection_name]
         self.dummy_task_id = "dummyTaskId"
         dummy_symbol_names = [
             {"symbol": "ONE"},
@@ -39,13 +38,13 @@ class TestScreenerTask:
             {"symbol": "FOUR"},
         ]
         for s in dummy_symbol_names:
-            copy_symbol = deepcopy(stock_snapshot["symbol"])
+            copy_symbol = deepcopy(stock_data_snapshot["symbol"])
             copy_symbol["symbol"] = s["symbol"]
             self.stock_data_collection.insert_one(
                 {
                     "taskId": self.dummy_task_id,
                     "symbol": copy_symbol,
-                    "data": stock_snapshot["data"],
+                    "data": stock_data_snapshot["data"],
                 }
             )
         self.screener_collection.insert_one(

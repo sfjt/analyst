@@ -16,11 +16,6 @@ from analyst.web_api import (
     API_KEY,
 )
 
-DB_NAME = GetStockDataTask.DB_NAME
-TASK_COLLECTION_NAME = GetStockDataTask.TASK_COLLECTION_NAME
-STOCK_DATA_COLLECTION_NAME = GetStockDataTask.STOCK_DATA_COLLECTION_NAME
-SCREENER_COLLECTION_NAME = GetStockDataTask.SCREENER_COLLECTION_NAME
-
 snapshot_file_path = Path.cwd() / "tests/fixtures/stock_snapshot.json"
 with open(snapshot_file_path, "r", encoding="utf-8") as f:
     stock_snapshot = json.load(f)
@@ -65,9 +60,13 @@ class TestGetStockDataTask:
     def setup_method(self):
         client = MongoClient()
         self.mock_db_client = client
-        self.stock_data_collection = client[DB_NAME][STOCK_DATA_COLLECTION_NAME]
-        self.screener_collection = client[DB_NAME][SCREENER_COLLECTION_NAME]
-        self.task_collection = client[DB_NAME][TASK_COLLECTION_NAME]
+        db_name = GetStockDataTask.DB_NAME
+        task_collection_name = GetStockDataTask.TASK_COLLECTION_NAME
+        stock_data_collection_name = GetStockDataTask.STOCK_DATA_COLLECTION_NAME
+        screener_collection_name = GetStockDataTask.SCREENER_COLLECTION_NAME
+        self.task_collection = client[db_name][task_collection_name]
+        self.stock_data_collection = client[db_name][stock_data_collection_name]
+        self.screener_collection = client[db_name][screener_collection_name]
 
     def teardown_method(self):
         self.mock_db_client.close()
@@ -81,7 +80,7 @@ class TestGetStockDataTask:
         task = GetStockDataTask("TEST", self.mock_db_client)
         task.get_single_stock_data_and_save({"symbol": "TEST"})
         filter_ = {"symbol.symbol": "TEST"}
-        count = task.stock_data_collection.count_documents(filter_)
+        count = self.stock_data_collection.count_documents(filter_)
         assert count == 1
 
     def test_save_ticker_symbol_names(self):
