@@ -26,7 +26,7 @@ class TestScreenerTask:
         screener_collection_name = ScreenerTask.SCREENER_COLLECTION_NAME
         task_collection_name = ScreenerTask.TASK_COLLECTION_NAME
         client = MongoClient()
-        self.mock_client = client
+        self.mock_db_client = client
         self.stock_data_collection = client[db_name][stock_data_collection_name]
         self.screener_collection = client[db_name][screener_collection_name]
         self.task_collection = client[db_name][task_collection_name]
@@ -55,22 +55,19 @@ class TestScreenerTask:
             }
         )
 
-    def teardown_method(self):
-        self.mock_client.close()
-
     def test_get_symbols_list_from_db(self):
-        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_client)
+        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)
         source_symbols = task.get_symbols_list_from_db()
         assert len(source_symbols) == 4
 
     def test_get_stock_data_from_db(self):
-        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_client)
+        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)
         stock_data = task.get_stock_data_from_db("ONE")
         assert "data" in stock_data
         assert "symbol" in stock_data
 
     def test_save_filter_result(self):
-        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_client)
+        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)
         task.filtered_symbols = ["ONE", "TWO"]
         task.save_filter_result()
         filter_ = {"taskId": task.task_id}
@@ -80,14 +77,14 @@ class TestScreenerTask:
         assert len(doc["tickerSymbols"]) == 2
 
     def test_single_get_and_filter(self):
-        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_client)
+        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)
         task.single_get_and_filter("ONE")
         task.single_get_and_filter("TWO")
         assert len(task.filtered_symbols) == 1
         assert task.filtered_symbols[0] == "ONE"
 
     def test_run(self):
-        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_client)
+        task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)
         task.run()
         filter_ = {"taskId": task.task_id}
         count_screener = self.screener_collection.count_documents(filter_)

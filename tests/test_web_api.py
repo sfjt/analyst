@@ -68,9 +68,6 @@ class TestGetStockDataTask:
         self.stock_data_collection = client[db_name][stock_data_collection_name]
         self.screener_collection = client[db_name][screener_collection_name]
 
-    def teardown_method(self):
-        self.mock_db_client.close()
-
     def test_get_single_stock_data_and_save(self, mocker):
         mocker.patch(
             "analyst.web_api.get_financial_statements",
