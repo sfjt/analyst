@@ -30,4 +30,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.black]
-exclude = ".venv"
+exclude = '\.venv|\.pytest_cache|\.ipynb_checkpoints'
