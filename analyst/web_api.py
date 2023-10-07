@@ -6,12 +6,13 @@ from time import sleep
 
 from pymongo import MongoClient
 import requests
+from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import HTTPError
 import dotenv
 from pandas import DataFrame
 
-from .task_base import AnalystTaskBase
-from .helpers import date_window, mongo_uri
+from analyst.task_base import AnalystTaskBase
+from analyst.helpers import date_window, mongo_uri
 
 dotenv.load_dotenv()
 
@@ -127,11 +128,14 @@ def get(url: str, params: dict = {}):
     :param params: Query parameters as a dict.
     :return: The response data as a Dataframe.
     """
+    session = requests.session()
+    retries = Retry(total=3, backoff_factor=1, status_forcelist=[429])
+    session.mount('https://', HTTPAdapter(max_retries=retries))
     params = {
         "apikey": API_KEY,
         **params,
     }
-    response = requests.get(url, params)
+    response = session.get(url, params=params)
     response.raise_for_status()
     data = response.json()
     if not data:

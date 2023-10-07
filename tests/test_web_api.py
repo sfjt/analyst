@@ -113,7 +113,7 @@ class TestGetStockDataTask:
 class TestGet:
     def test_get_success(self, mocker):
         m = mocker.patch(
-            "requests.get", return_value=mock_response(mock_daily_prices, 200)
+            "requests.Session.get", return_value=mock_response(mock_daily_prices, 200)
         )
         data = get(
             "https://financialmodelingprep.com/api/v3/historical-price-full/TEST",
@@ -121,12 +121,12 @@ class TestGet:
         )
         m.assert_called_once_with(
             "https://financialmodelingprep.com/api/v3/historical-price-full/TEST",
-            {"apikey": API_KEY, "test": "test"},
+            params={"apikey": API_KEY, "test": "test"},
         )
         assert type(data) is dict
 
     def test_det_daily_prices_no_data_error(self, mocker):
-        mocker.patch("requests.get", return_value=mock_response([], 200))
+        mocker.patch("requests.Session.get", return_value=mock_response([], 200))
         url = "https://financialmodelingprep.com/api/v3/historical-price-full/TEST"
         with pytest.raises(NoDataError) as e:
             get("https://financialmodelingprep.com/api/v3/historical-price-full/TEST")
@@ -158,7 +158,7 @@ class TestGetDailyPrices:
         assert prices is None
 
     def test_det_daily_prices_no_data_error(self, mocker):
-        mocker.patch("requests.get", return_value=mock_response([], 200))
+        mocker.patch("requests.Session.get", return_value=mock_response([], 200))
         prices = get_daily_prices("TEST", "2023-01-01", "2023-01-02")
         assert prices is None
 
@@ -188,7 +188,7 @@ class TestGetFinancialStatements:
         assert financials is None
 
     def test_det_daily_prices_no_data_error(self, mocker):
-        mocker.patch("requests.get", return_value=mock_response([], 200))
+        mocker.patch("requests.Session.get", return_value=mock_response([], 200))
         financials = get_financial_statements("TEST")
         assert financials is None
 
