@@ -11,6 +11,7 @@ from analyst.web_api import (
     get_ticker_symbols,
     get_daily_prices,
     get_financial_statements,
+    preprocess_financials,
     NoDataError,
     API_KEY,
 )
@@ -201,3 +202,10 @@ def test_get_ticker_symbols(mocker):
     sym = get_ticker_symbols()
     assert len(sym) == 4
     assert [s["symbol"] for s in sym] == ["AMEX", "NASDAQ", "NASDAQ2", "NYSE"]
+
+
+def test_preprocess_financials():
+    financial_statements = stock_snapshot["data"]["financial_statements"]["quarter"]
+    preprocessed = preprocess_financials(financial_statements)
+    assert "revenueYoYChange" in preprocessed[-1]
+    assert "epsdilutedYoYChange" in preprocessed[-1]

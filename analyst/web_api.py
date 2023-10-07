@@ -3,11 +3,13 @@ from datetime import date
 import logging.config
 from concurrent.futures import ThreadPoolExecutor
 from time import sleep
+from copy import deepcopy
 
 from pymongo import MongoClient
 import requests
 from requests.exceptions import HTTPError
 import dotenv
+from pandas import DataFrame
 
 from .task_base import AnalystTaskBase
 from .helpers import date_window, mongo_uri
@@ -53,6 +55,7 @@ class GetStockDataTask(AnalystTaskBase):
         financials_quarter = get_financial_statements(
             symbol_name, limit=num_quarters * 2, period="quarter"
         )
+        financials_quarter = preprocess_financials(financials_quarter)
         from_, to = date_window(date.today().isoformat(), 365)
         prices = get_daily_prices(symbol_name, from_, to)
         data = {
@@ -220,6 +223,15 @@ def run_get_stock_data_task():
     logger.info("Dropping existing data.")
     task.stock_data_collection.drop()
     task.run()
+
+
+def preprocess_financials(financials_quarter: dict):
+    q_df = DataFrame.from_dict(financials_quarter)
+    q_df = q_df.sort_values(by="date", ascending=True)
+    target_cols = ["revenue", "epsdiluted"]
+    for col in target_cols:
+        q_df[col + "YoYChange"] = q_df[col].pct_change(4)
+    return q_df.to_dict("records")
 
 
 class NoDataError(Exception):
