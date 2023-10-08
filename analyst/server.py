@@ -91,13 +91,13 @@ def screener_result_list(task_id, page):
         "current": f"{num_displayed + 1} - {num_displayed + num_per_page}",
     }
 
-    charts = []
+    data = []
     for s in stock_data_cursor.skip(num_displayed).limit(num_per_page):
-        charts.append({"symbol": s["symbol"]["symbol"]})
+        data.append({"symbol": s["symbol"]["symbol"]})
 
     return render_template(
         "screener_stock_data.html",
-        charts=charts,
+        data=data,
         pagination=pagination,
         task_id=task_id,
     )

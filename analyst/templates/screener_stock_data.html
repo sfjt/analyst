@@ -7,9 +7,9 @@
     <h1>Stock Data</h1>
     <p>{{ pagination.current }} / {{ pagination.total }}</p>
 
-    {% for c in charts %}
-      <h2>{{ c.symbol }}</h2>
-      <p><a href="/chart/simple/{{ c.symbol }}" target="_blank"/>Chart</a></p>
+    {% for d in data %}
+      <h2>{{ d.symbol }}</h2>
+      <p><a href="/chart/simple/{{ d.symbol }}" target="_blank"/>Chart</a></p>
     {% endfor %}
 
     {% if pagination.prev %}
