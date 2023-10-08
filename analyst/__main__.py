@@ -15,11 +15,13 @@ parser_screener = subparsers.add_parser("screener")
 parser_screener.set_defaults(fn=run_screener_task)
 
 parser_get_stock_data = subparsers.add_parser("getstockdata")
+parser_get_stock_data.add_argument(
+    "minimum_price", help="The minimum price threshold.", type=int
+)
 parser_get_stock_data.set_defaults(fn=run_get_stock_data_task)
 
 args = parser.parse_args()
-
 if hasattr(args, "fn"):
-    args.fn()
+    args.fn(args)
 else:
     parser.print_help()

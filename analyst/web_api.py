@@ -227,26 +227,32 @@ def get_ticker_symbols(min_price: float) -> list[dict]:
     def filter_stocks(s: dict):
         if not s["type"] == "stock":
             return False
+        if s["price"] is None:
+            return False
+        if s["price"] < min_price:
+            return False
         exchange_name = s["exchange"].lower()
         is_us_stock = (
             exchange_name.startswith("american stock exchange")
             or exchange_name.startswith("nasdaq")
             or exchange_name.startswith("new york stock exchange")
         )
-        return is_us_stock and s["price"] >= min_price
+        return is_us_stock
 
     us_stocks = filter(filter_stocks, symbols)
     return list(us_stocks)
 
 
-def run_get_stock_data_task():
-    """Run a single GetStockDataTask."""
-    min_price = 20
+def run_get_stock_data_task(args):
+    """Run a single GetStockDataTask.
+
+    :params args: Command line arguments.
+    """
     with MongoClient(mongo_uri()) as mongo_client:
         task = GetStockDataTask("Get Stock Data", mongo_client)
         logger.info("Dropping existing stock data.")
         task.stock_data_collection.drop()
-        task.run(min_price)
+        task.run(args.minimum_price)
         logger.info(f"Complete. Task ID: {task.task_id}")
 
 
