@@ -5,15 +5,20 @@
   </head>
   <body>
     <h1>Screener Tasks</h1>
-    <p>Latest stock data: {{ get_stock_data_task.description }} {{ get_stock_data_task.taskId }}</p>
+    {% if get_stock_data_task %}
+      <p>Latest stock data: {{ get_stock_data_task.taskId }}</p>
+      <p>{{ get_stock_data_task.description }} (Complete. Ended at: {{ get_stock_data_task.ended }})</p>
+    {% else %}
+      <p>No stock data in the database. The getstockdata command has not been executed yet.</p>
+    {% endif %}
     <ul>
       {% for t in screener_tasks %}
         {% if t.complete %}
           <li><a href="/screener/{{ t.task_id }}/1">
-            {{ t.description }} (complete, {{ t.started }})
+            {{ t.description }} (Complete. Ended at: {{ t.ended }})
           </a></li>
         {% else %}
-          <li>{{ t.description }} (incomplete, {{ t.started }})</li>
+          <li>{{ t.description }} (Incomplete. Started at: {{ t.started }})</li>
         {% endif %}
       {% else %}
         <li>No tasks found.</li>

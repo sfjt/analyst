@@ -65,14 +65,9 @@ class TestServer:
         )
         screener_task_incomplete.mark_start()
         resp = self.app.get("/screener")
-        assert resp.text.find("Test Get Data Task (complete,") == -1
-        assert resp.text.find("Test Screener Task (complete,") > -1
-        assert resp.text.find("Test Screener Task 2 (incomplete,") > -1
-
-        expected = (
-            f"Latest stock data: Test Get Data Task {get_stock_data_task.task_id}"
-        )
-        assert resp.text.find(expected) > -1
+        assert resp.text.find("Test Screener Task (Complete.") > -1
+        assert resp.text.find("Test Screener Task 2 (Incomplete.") > -1
+        assert resp.text.find(f"Latest stock data: {get_stock_data_task.task_id}") > -1
 
     def test_screener_result(self):
         num_per_page = 5

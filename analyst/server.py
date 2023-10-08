@@ -28,7 +28,10 @@ def screener_tasks_list():
         screener_tasks.append(t)
     cursor.close()
 
-    get_stock_data_filter = {"taskType": "get_stock_data"}
+    get_stock_data_filter = {
+        "taskType": "get_stock_data",
+        "complete": True,
+    }
     get_stock_data_task = mongo.db.tasks.find_one(
         get_stock_data_filter, sort=sort_conditions
     )
@@ -52,9 +55,7 @@ def screener_result_list(task_id, page):
 
     stock_data_filter = {"symbol.symbol": {"$in": symbols}}
     sort_condition = [("symbol.symbol", ASCENDING)]
-    stock_data_cursor = mongo.db.stock_data.find(stock_data_filter).sort(
-        sort_condition
-    )
+    stock_data_cursor = mongo.db.stock_data.find(stock_data_filter).sort(sort_condition)
     num_total = mongo.db.stock_data.count_documents(stock_data_filter)
 
     next_page_index = None
