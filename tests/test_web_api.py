@@ -1,5 +1,6 @@
 from pathlib import Path
 import json
+from copy import deepcopy
 
 import pytest
 from mongomock import MongoClient
@@ -72,7 +73,7 @@ class TestGetStockDataTask:
     def teardown_method(self):
         self.mock_db_client.close()
 
-    def test_get_single_stock_data_and_save(self, mocker):
+    def test_get_single_stock_data_and_save_success(self, mocker):
         mocker.patch(
             "analyst.web_api.get_financial_statements",
             return_value=mock_financials_quarter,
@@ -84,14 +85,51 @@ class TestGetStockDataTask:
         count = self.stock_data_collection.count_documents(filter_)
         assert count == 1
 
-    def test_save_ticker_symbol_names(self):
+    def test_get_single_stock_data_and_save_no_financials(self, mocker):
+        mocker.patch(
+            "analyst.web_api.get_financial_statements",
+            return_value=None,
+        )
+        mocker.patch("analyst.web_api.get_daily_prices", return_value=mock_daily_prices)
         task = GetStockDataTask("TEST", self.mock_db_client)
-        task.save_ticker_symbol_names(["A", "B"])
+        task.get_single_stock_data_and_save({"symbol": "TEST"})
+        filter_ = {"symbol.symbol": "TEST"}
+        count = self.stock_data_collection.count_documents(filter_)
+        assert count == 0
+
+    def test_get_single_stock_data_and_save_no_prices(self, mocker):
+        mocker.patch(
+            "analyst.web_api.get_financial_statements",
+            return_value=mock_financials_quarter,
+        )
+        mocker.patch("analyst.web_api.get_daily_prices", return_value=None)
+        task = GetStockDataTask("TEST", self.mock_db_client)
+        task.get_single_stock_data_and_save({"symbol": "TEST"})
+        filter_ = {"symbol.symbol": "TEST"}
+        count = self.stock_data_collection.count_documents(filter_)
+        assert count == 0
+
+    def test_save_to_screener_collection(self):
+        task = GetStockDataTask("TEST", self.mock_db_client)
+        symbol_names = ["A", "B"]
+        docs = []
+        for s in symbol_names:
+            copy_symbol = deepcopy(stock_snapshot["symbol"])
+            copy_symbol["symbol"] = s
+            docs.append(
+                {
+                    "taskId": task.task_id,
+                    "symbol": copy_symbol,
+                    "data": stock_snapshot["data"],
+                }
+            )
+        self.stock_data_collection.insert_many(docs)
+        task.save_to_screener_collection()
         filter_ = {"taskId": task.task_id}
         count = self.screener_collection.count_documents(filter_)
         doc = self.screener_collection.find_one(filter_)
         assert count == 1
-        assert doc["tickerSymbols"] == ["A", "B"]
+        assert doc["tickerSymbols"] == symbol_names
 
     def test_run(self, mocker):
         mocker.patch(

@@ -69,11 +69,17 @@ class GetStockDataTask(AnalystTaskBase):
             {"taskId": self.task_id, "symbol": symbol, "data": data}
         )
 
-    def save_ticker_symbol_names(self, ticker_symbol_names: list[str]):
+    def save_to_screener_collection(self):
+        filter_ = {"taskId": self.task_id}
+        project = {"symbol": 1}
+        cursor = self.stock_data_collection.find(filter_, project)
+        symbol_names = []
+        for s in cursor:
+            symbol_names.append(s["symbol"]["symbol"])
         self.screener_collection.insert_one(
             {
                 "taskId": self.task_id,
-                "tickerSymbols": ticker_symbol_names,
+                "tickerSymbols": symbol_names,
             }
         )
 
@@ -122,13 +128,7 @@ class GetStockDataTask(AnalystTaskBase):
                 break
 
         logger.info("Saving symbol names that returned valid data.")
-        filter_ = {"taskId": self.task_id}
-        project = {"symbol": 1}
-        cursor = self.stock_data_collection.find(filter_, project)
-        ticker_symbol_names = []
-        for s in cursor:
-            ticker_symbol_names.append(s["symbol"]["symbol"])
-        self.save_ticker_symbol_names(ticker_symbol_names)
+        self.save_to_screener_collection()
 
         logger.info("Done.")
         self.mark_complete()
