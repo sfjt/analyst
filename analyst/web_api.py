@@ -144,14 +144,14 @@ def get(url: str, params: dict = {}):
     :param params: Query parameters as a dict.
     :return: The response data as a Dataframe.
     """
-    session = requests.session()
     retries = Retry(total=3, backoff_factor=1, status_forcelist=[429])
-    session.mount("https://", HTTPAdapter(max_retries=retries))
-    params = {
-        "apikey": API_KEY,
-        **params,
-    }
-    response = session.get(url, params=params)
+    with requests.session() as session:
+        session.mount("https://", HTTPAdapter(max_retries=retries))
+        params = {
+            "apikey": API_KEY,
+            **params,
+        }
+        response = session.get(url, params=params)
     response.raise_for_status()
     data = response.json()
     if not data:

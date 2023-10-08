@@ -56,7 +56,12 @@ mock_ticker_symbols = [
         "exchange": "New York Stock Exchange Arca",
         "price": 19.0,
     },
-    {"symbol": "LSE_FILTERED_1", "type": "stock", "exchange": "London Stock Exchange"},
+    {
+        "symbol": "LSE_FILTERED_1",
+        "type": "stock",
+        "exchange": "London Stock Exchange",
+        "price": 100.0,
+    },
     {"symbol": "ETF_FILTERED_1", "type": "etf"},
 ]
 mock_filtered_ticker_symbols = [
