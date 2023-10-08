@@ -159,7 +159,7 @@ def get_financial_statements(symbol: str, limit: int = 10, period: str = "quarte
     try:
         return get(url, params)
     except HTTPError as err:
-        logger.warning(f"Error while getting income statements: {symbol}")
+        logger.error(f"Error while getting income statements: {symbol}")
         logger.exception(err)
         return None
     except NoDataError:
