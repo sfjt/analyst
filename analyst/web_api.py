@@ -1,6 +1,6 @@
 import os
 from datetime import date
-import logging.config
+from logging import getLogger
 from concurrent.futures import ThreadPoolExecutor
 from time import sleep
 
@@ -20,8 +20,7 @@ API_KEY = os.getenv("API_KEY")
 BASE_URL = "https://financialmodelingprep.com/api/v3/"
 REQUEST_PER_MINUTE = 300
 
-logging.config.fileConfig("logging.ini")
-logger = logging.getLogger("analyst")
+logger = getLogger("analyst")
 
 
 class GetStockDataTask(AnalystTaskBase):
@@ -96,7 +95,7 @@ class GetStockDataTask(AnalystTaskBase):
             batch_count += 1
             symbol_count_from = (batch_count - 1) * batch_size + 1
             symbol_count_to = batch_count * batch_size
-            logging.info(
+            logger.info(
                 f"Batch #{batch_count}: {symbol_count_from} - {symbol_count_to}"
             )
             with ThreadPoolExecutor() as e:
@@ -160,11 +159,11 @@ def get_financial_statements(symbol: str, limit: int = 10, period: str = "quarte
     try:
         return get(url, params)
     except HTTPError as err:
-        logger.error(f"Error while getting income statements: {symbol}")
+        logger.warning(f"Error while getting income statements: {symbol}")
         logger.exception(err)
         return None
     except NoDataError:
-        logger.error(f"No income statement data returned: {symbol}")
+        logger.warning(f"No income statement data returned: {symbol}")
         return None
 
 

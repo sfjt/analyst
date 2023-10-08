@@ -1,7 +1,10 @@
 import argparse
+import logging.config
 
 from .screener import run_screener_task
 from .web_api import run_get_stock_data_task
+
+logging.config.fileConfig("logging.ini", disable_existing_loggers=False)
 
 parser = argparse.ArgumentParser(
     description="A personal financial analysis tool", prog="analyst"
