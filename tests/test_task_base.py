@@ -11,6 +11,9 @@ class TestAnalystTaskBase:
         self.mock_db_client = client
         self.task_collection = client[db_name][task_collection_name]
 
+    def teardown_method(self):
+        self.mock_db_client.close()
+
     def test_mark_start(self):
         task = AnalystTaskBase("Test Incomplete", self.mock_db_client)
         task.mark_start()

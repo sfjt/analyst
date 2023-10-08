@@ -32,6 +32,9 @@ class TestServer:
         self.stock_data_collection = client[db_name][stock_data_collection_name]
         self.screener_collection = client[db_name][screener_collection_name]
 
+    def teardown_method(self):
+        self.mock_db_client.close()
+
     def test_root(self):
         resp = self.app.get("/")
         assert resp.status == "200 OK"

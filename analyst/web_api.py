@@ -221,11 +221,12 @@ def get_ticker_symbols() -> list[dict]:
 
 def run_get_stock_data_task():
     """Run a single GetStockDataTask."""
-    task = GetStockDataTask("Get Stock Data", MongoClient(mongo_uri()))
-    logger.info("Dropping existing stock data.")
-    task.stock_data_collection.drop()
-    task.run()
-    logger.info(f"Complete. Task ID: {task.task_id}")
+    with MongoClient(mongo_uri()) as mongo_client:
+        task = GetStockDataTask("Get Stock Data", mongo_client)
+        logger.info("Dropping existing stock data.")
+        task.stock_data_collection.drop()
+        task.run()
+        logger.info(f"Complete. Task ID: {task.task_id}")
 
 
 def preprocess_financials(financials_quarter: dict):

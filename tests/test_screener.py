@@ -56,6 +56,9 @@ class TestScreenerTask:
             }
         )
 
+    def teardown_method(self):
+        self.mock_db_client.close()
+
     def test_get_symbols_list_from_db(self):
         task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)
         source_symbols = task.get_symbols_list_from_db()

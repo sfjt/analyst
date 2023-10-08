@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 
 from .task_base import AnalystTaskBase
+from .helpers import mongo_uri
 
 load_dotenv()
 
@@ -115,4 +116,5 @@ class ScreenerTask(AnalystTaskBase):
 
 def run_screener_task():
     """Runs a screener task"""
-    pass
+    with MongoClient(mongo_uri()) as mongo_client:
+        pass
