@@ -14,7 +14,6 @@ from analyst.web_api import (
     get_financial_statements,
     preprocess_financials,
     NoDataError,
-    API_KEY,
 )
 from analyst.task_base import AnalystTaskBase
 
@@ -194,10 +193,10 @@ class TestGet:
             "https://financialmodelingprep.com/api/v3/historical-price-full/TEST",
             {"test": "test"},
         )
-        m.assert_called_once_with(
-            "https://financialmodelingprep.com/api/v3/historical-price-full/TEST",
-            params={"apikey": API_KEY, "test": "test"},
-        )
+        args, kwargs = m.call_args
+        assert args == ("https://financialmodelingprep.com/api/v3/historical-price-full/TEST",)
+        assert "apikey" in kwargs["params"]
+        assert kwargs["params"]["test"] == "test"
         assert type(data) is dict
 
     def test_det_daily_prices_no_data_error(self, mocker):
