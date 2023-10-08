@@ -54,9 +54,9 @@ class GetStockDataTask(AnalystTaskBase):
         financials_quarter = get_financial_statements(
             symbol_name, limit=num_quarters * 2, period="quarter"
         )
-        financials_quarter = preprocess_financials(financials_quarter)
         if financials_quarter is None:
             return
+        financials_quarter = preprocess_financials(financials_quarter)
         from_, to = date_window(date.today().isoformat(), 365)
         prices = get_daily_prices(symbol_name, from_, to)
         if prices is None:
