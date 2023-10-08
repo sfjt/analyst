@@ -3,28 +3,11 @@ from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from pandas import DataFrame
 
 from .helpers import mongo_uri
-from .screener import AnalystTaskBase
 from .algo.plot import simple_plot
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = mongo_uri()
 mongo = PyMongo(app)
-
-
-def get_collection(collection_name: str):
-    return mongo.db[collection_name]
-
-
-def get_task_collection():
-    return get_collection(AnalystTaskBase.TASK_COLLECTION_NAME)
-
-
-def get_stock_data_collection():
-    return get_collection(AnalystTaskBase.STOCK_DATA_COLLECTION_NAME)
-
-
-def get_screener_collection():
-    return get_collection(AnalystTaskBase.SCREENER_COLLECTION_NAME)
 
 
 @app.route("/", methods=["GET"])
@@ -39,15 +22,14 @@ def screener_tasks_list():
 
     screener_filter = {"taskType": "screener"}
     sort_conditions = [("started", DESCENDING)]
-    collection = get_task_collection()
-    cursor = collection.find(screener_filter).sort(sort_conditions)
+    cursor = mongo.db.tasks.find(screener_filter).sort(sort_conditions)
     screener_tasks = []
     for t in cursor.limit(limit):
         screener_tasks.append(t)
     cursor.close()
 
     get_stock_data_filter = {"taskType": "get_stock_data"}
-    get_stock_data_task = collection.find_one(
+    get_stock_data_task = mongo.db.tasks.find_one(
         get_stock_data_filter, sort=sort_conditions
     )
 
@@ -65,17 +47,15 @@ def screener_result_list(task_id, page):
     num_displayed = (current_page_index - 1) * num_per_page
 
     screener_filter = {"taskId": task_id}
-    screener_collection = get_screener_collection()
-    screener_result = screener_collection.find_one(screener_filter)
+    screener_result = mongo.db.screener_results.find_one(screener_filter)
     symbols = screener_result["tickerSymbols"]
 
     stock_data_filter = {"symbol.symbol": {"$in": symbols}}
     sort_condition = [("symbol.symbol", ASCENDING)]
-    stock_data_collection = get_stock_data_collection()
-    stock_data_cursor = stock_data_collection.find(stock_data_filter).sort(
+    stock_data_cursor = mongo.db.stock_data.find(stock_data_filter).sort(
         sort_condition
     )
-    num_total = get_stock_data_collection().count_documents(stock_data_filter)
+    num_total = mongo.db.stock_data.count_documents(stock_data_filter)
 
     next_page_index = None
     if num_total > (num_displayed + num_per_page):
@@ -111,8 +91,7 @@ def simple_candlestick_chart(symbol):
     default_h = 5
     h = request.args.get("h", default_h)
 
-    stock_data_collection = get_stock_data_collection()
-    ticker = stock_data_collection.find_one({"symbol.symbol": symbol})
+    ticker = mongo.db.stock_data.find_one({"symbol.symbol": symbol})
     prices = ticker["data"]["prices"]["historical"]
     df_prices = DataFrame.from_dict(prices)
     chart_image = simple_plot(df_prices, days, w, h)

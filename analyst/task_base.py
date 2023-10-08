@@ -13,8 +13,8 @@ class AnalystTaskBase:
     TASK_TYPE = "task_base"
     DB_NAME = os.getenv("DB_NAME")
     TASK_COLLECTION_NAME = "tasks"
-    STOCK_DATA_COLLECTION_NAME = "stockdata"
-    SCREENER_COLLECTION_NAME = "screener"
+    STOCK_DATA_COLLECTION_NAME = "stock_data"
+    SCREENER_COLLECTION_NAME = "screener_results"
 
     def __init__(self, description: str, db_client: MongoClient):
         """Represents a time-consuming task.
