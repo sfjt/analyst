@@ -28,6 +28,7 @@ class TestServer:
         screener_collection_name = AnalystTaskBase.SCREENER_COLLECTION_NAME
         client = MongoClient()
         mongo.cx = client
+        mongo.db = client[db_name]
         self.mock_db_client = client
         self.stock_data_collection = client[db_name][stock_data_collection_name]
         self.screener_collection = client[db_name][screener_collection_name]

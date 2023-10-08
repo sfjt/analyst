@@ -8,12 +8,12 @@ from .algo.plot import simple_plot
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = mongo_uri()
+app.config['MONGO_DBNAME'] = AnalystTaskBase.DB_NAME
 mongo = PyMongo(app)
 
 
 def get_collection(collection_name: str):
-    db_name = AnalystTaskBase.DB_NAME
-    return mongo.cx[db_name][collection_name]
+    return mongo.db[collection_name]
 
 
 def get_task_collection():
