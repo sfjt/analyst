@@ -240,12 +240,16 @@ def get_ticker_symbols(min_price: float) -> list[dict]:
 
 
 def run_get_stock_data_task():
-    """Run a single GetStockDataTask."""
+    """Run a single GetStockDataTask.
+
+    :param min_price: The minimum price threshold.
+    """
+    min_price = 20
     with MongoClient(mongo_uri()) as mongo_client:
         task = GetStockDataTask("Get Stock Data", mongo_client)
         logger.info("Dropping existing stock data.")
         task.stock_data_collection.drop()
-        task.run()
+        task.run(min_price)
         logger.info(f"Complete. Task ID: {task.task_id}")
 
 

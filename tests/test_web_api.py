@@ -25,12 +25,37 @@ with open(snapshot_file_path, "r", encoding="utf-8") as f:
 mock_financials_quarter = stock_snapshot["data"]["financial_statements"]["quarter"]
 mock_daily_prices = stock_snapshot["data"]["prices"]
 mock_ticker_symbols = [
-    {"symbol": "AMEX_PASS_1", "type": "stock", "exchange": "American Stock Exchange", "price": 30.1},
+    {
+        "symbol": "AMEX_PASS_1",
+        "type": "stock",
+        "exchange": "American Stock Exchange",
+        "price": 20.1,
+    },
     {"symbol": "TRUST_FILTERED_1", "type": "trust"},
-    {"symbol": "NASDAQ_PASS_1", "type": "stock", "exchange": "NASDAQ Capital Market", "price": 100.0},
-    {"symbol": "NASDAQ_PASS_2", "type": "stock", "exchange": "NASDAQ Global Market", "price": 30.0},
-    {"symbol": "NYSE_PASS_1", "type": "stock", "exchange": "New York Stock Exchange Arca", "price": 31.0},
-    {"symbol": "NYSE_FILTERED_1", "type": "stock", "exchange": "New York Stock Exchange Arca", "price": 29.0},
+    {
+        "symbol": "NASDAQ_PASS_1",
+        "type": "stock",
+        "exchange": "NASDAQ Capital Market",
+        "price": 100.0,
+    },
+    {
+        "symbol": "NASDAQ_PASS_2",
+        "type": "stock",
+        "exchange": "NASDAQ Global Market",
+        "price": 20.0,
+    },
+    {
+        "symbol": "NYSE_PASS_1",
+        "type": "stock",
+        "exchange": "New York Stock Exchange Arca",
+        "price": 31.0,
+    },
+    {
+        "symbol": "NYSE_FILTERED_1",
+        "type": "stock",
+        "exchange": "New York Stock Exchange Arca",
+        "price": 19.0,
+    },
     {"symbol": "LSE_FILTERED_1", "type": "stock", "exchange": "London Stock Exchange"},
     {"symbol": "ETF_FILTERED_1", "type": "etf"},
 ]
@@ -143,7 +168,7 @@ class TestGetStockDataTask:
         )
         mocker.patch("analyst.web_api.get_daily_prices", return_value=mock_daily_prices)
         task = GetStockDataTask("TEST", self.mock_db_client)
-        task.run(30.0)
+        task.run(20.0)
         filter_ = {"taskId": task.task_id}
         count_stock_data = self.stock_data_collection.count_documents(filter_)
         count_screener = self.screener_collection.count_documents(filter_)
@@ -240,9 +265,14 @@ class TestGetFinancialStatements:
 
 def test_get_ticker_symbols(mocker):
     mocker.patch("requests.get", return_value=mock_response(mock_ticker_symbols, 200))
-    sym = get_ticker_symbols(30.0)
+    sym = get_ticker_symbols(20.0)
     assert len(sym) == 4
-    assert [s["symbol"] for s in sym] == ["AMEX_PASS_1", "NASDAQ_PASS_1", "NASDAQ_PASS_2", "NYSE_PASS_1"]
+    assert [s["symbol"] for s in sym] == [
+        "AMEX_PASS_1",
+        "NASDAQ_PASS_1",
+        "NASDAQ_PASS_2",
+        "NYSE_PASS_1",
+    ]
 
 
 def test_preprocess_financials():
