@@ -86,12 +86,12 @@ class TestGetStockDataTask:
 
     def test_save_ticker_symbol_names(self):
         task = GetStockDataTask("TEST", self.mock_db_client)
-        task.save_ticker_symbol_names(mock_filtered_ticker_symbols)
+        task.save_ticker_symbol_names(["A", "B"])
         filter_ = {"taskId": task.task_id}
         count = self.screener_collection.count_documents(filter_)
         doc = self.screener_collection.find_one(filter_)
         assert count == 1
-        assert len(doc["tickerSymbols"]) == len(mock_filtered_ticker_symbols)
+        assert len(doc["tickerSymbols"]) == 2
 
     def test_run(self, mocker):
         mocker.patch(
@@ -108,8 +108,10 @@ class TestGetStockDataTask:
         filter_ = {"taskId": task.task_id}
         count_stock_data = self.stock_data_collection.count_documents(filter_)
         count_screener = self.screener_collection.count_documents(filter_)
+        screener_result = self.screener_collection.find_one(filter_)
         doc_task = self.task_collection.find_one(filter_)
         assert count_stock_data == 4
+        assert len(screener_result["tickerSymbols"]) == 4
         assert count_screener == 1
         assert doc_task["taskType"] == "get_stock_data"
 

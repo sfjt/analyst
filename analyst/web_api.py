@@ -55,8 +55,12 @@ class GetStockDataTask(AnalystTaskBase):
             symbol_name, limit=num_quarters * 2, period="quarter"
         )
         financials_quarter = preprocess_financials(financials_quarter)
+        if financials_quarter is None:
+            return
         from_, to = date_window(date.today().isoformat(), 365)
         prices = get_daily_prices(symbol_name, from_, to)
+        if prices is None:
+            return
         data = {
             "financial_statements": {"quarter": financials_quarter},
             "prices": prices,
@@ -65,11 +69,11 @@ class GetStockDataTask(AnalystTaskBase):
             {"taskId": self.task_id, "symbol": symbol, "data": data}
         )
 
-    def save_ticker_symbol_names(self, symbols: list[dict]):
+    def save_ticker_symbol_names(self, ticker_symbol_names: list[str]):
         self.screener_collection.insert_one(
             {
                 "taskId": self.task_id,
-                "tickerSymbols": [s["symbol"] for s in symbols],
+                "tickerSymbols": ticker_symbol_names,
             }
         )
 
@@ -80,12 +84,13 @@ class GetStockDataTask(AnalystTaskBase):
         as a screener result (without filtering)
         so following ScreenerTask can refer to it.
         """
+        logger.info("A GetStockDataTask started.")
         self.mark_start()
+
         logger.info("Getting a list of stock ticker symbols.")
         symbols = get_ticker_symbols()
         logger.info(f"{len(symbols)} symbols.")
-        logger.info("Saving ticker symbols names.")
-        self.save_ticker_symbol_names(symbols)
+
         requests_per_symbol = GetStockDataTask.REQUESTS_PER_SYMBOL
         buffer = GetStockDataTask.RATE_LIMIT_BUFFER
         batch_size = (REQUEST_PER_MINUTE - buffer) // requests_per_symbol
@@ -115,6 +120,16 @@ class GetStockDataTask(AnalystTaskBase):
                 sleep(GetStockDataTask.DELAY_PER_BATCH)
             else:
                 break
+
+        logger.info("Saving symbol names that returned valid data.")
+        filter_ = {"taskId": self.task_id}
+        project = {"symbol": 1}
+        cursor = self.stock_data_collection.find(filter_, project)
+        ticker_symbol_names = []
+        for s in cursor:
+            ticker_symbol_names.append(s["symbol"]["symbol"])
+        self.save_ticker_symbol_names(ticker_symbol_names)
+
         logger.info("Done.")
         self.mark_complete()
 
@@ -163,7 +178,7 @@ def get_financial_statements(symbol: str, limit: int = 10, period: str = "quarte
         logger.exception(err)
         return None
     except NoDataError:
-        logger.warning(f"No income statement data returned: {symbol}")
+        logger.debug(f"No income statement data: {symbol}")
         return None
 
 
@@ -188,7 +203,7 @@ def get_daily_prices(symbol: str, from_: str = "", to: str = ""):
         logger.exception(err)
         return None
     except NoDataError:
-        logger.warning(f"No historical daily stock data returned: {symbol}")
+        logger.debug(f"No historical daily stock data: {symbol}")
         return None
 
 
