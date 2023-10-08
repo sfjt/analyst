@@ -194,7 +194,9 @@ class TestGet:
             {"test": "test"},
         )
         args, kwargs = m.call_args
-        assert args == ("https://financialmodelingprep.com/api/v3/historical-price-full/TEST",)
+        assert args == (
+            "https://financialmodelingprep.com/api/v3/historical-price-full/TEST",
+        )
         assert "apikey" in kwargs["params"]
         assert kwargs["params"]["test"] == "test"
         assert type(data) is dict
