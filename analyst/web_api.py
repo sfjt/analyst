@@ -83,18 +83,20 @@ class GetStockDataTask(AnalystTaskBase):
             }
         )
 
-    def run(self):
+    def run(self, min_price: float):
         """Get US stock ticker symbols and data
         And save it to the database.
         Also saves the list of the ticker symbols
         as a screener result (without filtering)
         so following ScreenerTask can refer to it.
+
+        :param min_price: The minimum price threshold.
         """
         logger.info("A GetStockDataTask started.")
         self.mark_start()
 
         logger.info("Getting a list of stock ticker symbols.")
-        symbols = get_ticker_symbols()
+        symbols = get_ticker_symbols(min_price)
         logger.info(f"{len(symbols)} symbols.")
 
         requests_per_symbol = GetStockDataTask.REQUESTS_PER_SYMBOL
@@ -207,8 +209,10 @@ def get_daily_prices(symbol: str, from_: str = "", to: str = ""):
         return None
 
 
-def get_ticker_symbols() -> list[dict]:
+def get_ticker_symbols(min_price: float) -> list[dict]:
     """https://site.financialmodelingprep.com/developer/docs/#Symbols-List
+
+    :param min_price: The minimum price threshold.
 
     :return: Get US stock ticker symbols.
     """
@@ -220,17 +224,18 @@ def get_ticker_symbols() -> list[dict]:
     response.raise_for_status()
     symbols = response.json()
 
-    def filter_us_stocks(s: dict):
+    def filter_stocks(s: dict):
         if not s["type"] == "stock":
             return False
         exchange_name = s["exchange"].lower()
-        return (
+        is_us_stock = (
             exchange_name.startswith("american stock exchange")
             or exchange_name.startswith("nasdaq")
             or exchange_name.startswith("new york stock exchange")
         )
+        return is_us_stock and s["price"] >= min_price
 
-    us_stocks = filter(filter_us_stocks, symbols)
+    us_stocks = filter(filter_stocks, symbols)
     return list(us_stocks)
 
 
