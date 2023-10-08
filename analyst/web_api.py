@@ -188,7 +188,7 @@ def get_daily_prices(symbol: str, from_: str = "", to: str = ""):
         logger.exception(err)
         return None
     except NoDataError:
-        logger.error(f"No historical daily stock data returned: {symbol}")
+        logger.warning(f"No historical daily stock data returned: {symbol}")
         return None
 
 
