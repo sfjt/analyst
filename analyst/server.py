@@ -12,22 +12,21 @@ app.config["MONGO_URI"] = mongo_uri()
 mongo = PyMongo(app)
 
 
-def task_collection():
+def get_collection(collection_name: str):
     db_name = ScreenerTask.DB_NAME
-    collection_name = ScreenerTask.TASK_COLLECTION_NAME
     return mongo.cx[db_name][collection_name]
 
 
-def stock_data_collection():
-    db_name = ScreenerTask.DB_NAME
-    collection_name = ScreenerTask.STOCK_DATA_COLLECTION_NAME
-    return mongo.cx[db_name][collection_name]
+def get_task_collection():
+    return get_collection(ScreenerTask.TASK_COLLECTION_NAME)
 
 
-def screener_collection():
-    db_name = ScreenerTask.DB_NAME
-    collection_name = ScreenerTask.SCREENER_COLLECTION_NAME
-    return mongo.cx[db_name][collection_name]
+def get_stock_data_collection():
+    return get_collection(ScreenerTask.STOCK_DATA_COLLECTION_NAME)
+
+
+def get_screener_collection():
+    return get_collection(ScreenerTask.SCREENER_COLLECTION_NAME)
 
 
 @app.route("/", methods=["GET"])
@@ -39,12 +38,26 @@ def index():
 def screener_tasks_list():
     default_limit = 100
     limit = request.args.get("limit", default_limit)
-    filter_ = {"taskType": "screener"}
-    task_cursor = task_collection().find(filter_).sort("started", DESCENDING)
-    tasks = []
-    for t in task_cursor.limit(limit):
-        tasks.append(t)
-    return render_template("screener_tasks_list.html", tasks=tasks)
+
+    screener_filter = {"taskType": "screener"}
+    sort_conditions = [("started", DESCENDING)]
+    collection = get_task_collection()
+    cursor = collection.find(screener_filter).sort(sort_conditions)
+    screener_tasks = []
+    for t in cursor.limit(limit):
+        screener_tasks.append(t)
+    cursor.close()
+
+    get_stock_data_filter = {"taskType": "get_stock_data"}
+    get_stock_data_task = collection.find_one(
+        get_stock_data_filter, sort=sort_conditions
+    )
+
+    return render_template(
+        "screener_tasks_list.html",
+        screener_tasks=screener_tasks,
+        get_stock_data_task=get_stock_data_task,
+    )
 
 
 @app.route("/screener/<task_id>/<page>", methods=["GET"])
@@ -52,15 +65,19 @@ def screener_result_list(task_id, page):
     num_per_page = 5
     current_page_index = int(page)
     num_displayed = (current_page_index - 1) * num_per_page
-    filter_task_id = {"taskId": task_id}
-    screener_result = screener_collection().find_one(filter_task_id)
-    symbols = screener_result["tickerSymbols"]
-    filter_symbols = {"symbol.symbol": {"$in": symbols}}
 
-    stock_data_cursor = (
-        stock_data_collection().find(filter_symbols).sort("symbol.symbol", ASCENDING)
+    screener_filter = {"taskId": task_id}
+    screener_collection = get_screener_collection()
+    screener_result = screener_collection.find_one(screener_filter)
+    symbols = screener_result["tickerSymbols"]
+
+    stock_data_filter = {"symbol.symbol": {"$in": symbols}}
+    sort_condition = [("symbol.symbol", ASCENDING)]
+    stock_data_collection = get_stock_data_collection()
+    stock_data_cursor = stock_data_collection.find(stock_data_filter).sort(
+        sort_condition
     )
-    num_total = stock_data_collection().count_documents(filter_symbols)
+    num_total = get_stock_data_collection().count_documents(stock_data_filter)
 
     next_page_index = None
     if num_total > (num_displayed + num_per_page):
@@ -95,11 +112,11 @@ def simple_candlestick_chart(symbol):
     w = request.args.get("w", default_w)
     default_h = 5
     h = request.args.get("h", default_h)
-    db_name = GetStockDataTask.DB_NAME
-    collection_name = GetStockDataTask.STOCK_DATA_COLLECTION_NAME
-    collection = mongo.cx[db_name][collection_name]
-    ticker = collection.find_one({"symbol.symbol": symbol})
+
+    stock_data_collection = get_stock_data_collection()
+    ticker = stock_data_collection.find_one({"symbol.symbol": symbol})
     prices = ticker["data"]["prices"]["historical"]
     df_prices = DataFrame.from_dict(prices)
     chart_image = simple_plot(df_prices, days, w, h)
+
     return Response(chart_image, content_type="image/jpeg")

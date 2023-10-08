@@ -205,3 +205,4 @@ def test_preprocess_financials():
     preprocessed = preprocess_financials(financial_statements)
     assert "revenueYoYChange" in preprocessed[-1]
     assert "epsdilutedYoYChange" in preprocessed[-1]
+    assert "netIncomeYoYChange" in preprocessed[-1]

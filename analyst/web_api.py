@@ -130,7 +130,7 @@ def get(url: str, params: dict = {}):
     """
     session = requests.session()
     retries = Retry(total=3, backoff_factor=1, status_forcelist=[429])
-    session.mount('https://', HTTPAdapter(max_retries=retries))
+    session.mount("https://", HTTPAdapter(max_retries=retries))
     params = {
         "apikey": API_KEY,
         **params,
@@ -223,15 +223,16 @@ def get_ticker_symbols() -> list[dict]:
 def run_get_stock_data_task():
     """Run a single GetStockDataTask."""
     task = GetStockDataTask("Get Stock Data", MongoClient(mongo_uri()))
-    logger.info("Dropping existing data.")
+    logger.info("Dropping existing stock data.")
     task.stock_data_collection.drop()
     task.run()
+    logger.info(f"Complete. Task ID: {task.task_id}")
 
 
 def preprocess_financials(financials_quarter: dict):
     q_df = DataFrame.from_dict(financials_quarter)
     q_df = q_df.sort_values(by="date", ascending=True)
-    target_cols = ["revenue", "epsdiluted"]
+    target_cols = ["revenue", "netIncome", "epsdiluted"]
     for col in target_cols:
         q_df[col + "YoYChange"] = q_df[col].pct_change(4)
     return q_df.to_dict("records")

@@ -5,8 +5,9 @@
   </head>
   <body>
     <h1>Screener Tasks</h1>
+    <p>Latest stock data: {{ get_stock_data_task.description }} {{ get_stock_data_task.taskId }}</p>
     <ul>
-      {% for t in tasks %}
+      {% for t in screener_tasks %}
         {% if t.complete %}
           <li><a href="/screener/{{ t.task_id }}/1">
             {{ t.description }} (complete, {{ t.started }})
