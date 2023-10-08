@@ -11,7 +11,7 @@ load_dotenv()
 
 class AnalystTaskBase:
     TASK_TYPE = "task_base"
-    DB_NAME = os.getenv("DB_NAME")
+    DB_NAME = os.getenv("MONGO_ANALYST_DB_NAME")
     TASK_COLLECTION_NAME = "tasks"
     STOCK_DATA_COLLECTION_NAME = "stock_data"
     SCREENER_COLLECTION_NAME = "screener_results"

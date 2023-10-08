@@ -13,9 +13,9 @@ def mongo_uri() -> str:
     """
     host = os.getenv("MONGO_HOST")
     port = int(os.getenv("MONGO_PORT"))
-    username = os.getenv("ANALYST_USERNAME")
-    password = os.getenv("ANALYST_PASSWORD")
-    db_name = os.getenv("DB_NAME")
+    username = os.getenv("MONGO_ANALYST_USERNAME")
+    password = os.getenv("MONGO_ANALYST_PASSWORD")
+    db_name = os.getenv("MONGO_ANALYST_DB_NAME")
     return f"mongodb://{username}:{password}@{host}:{port}/{db_name}"
 
 

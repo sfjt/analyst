@@ -16,7 +16,7 @@ A personal, experimental financial analysis tool.
 1. Rename `.env.example` to `.env` and specify these environment variables:
    - API_KEY: The key you got in the prerequisites step #2.
    - MONGO_ROOT_PASSWORD: Generate a password for the root user.
-   - ANALYST_PASSWORD: Generate a password for the analyst database user.
+   - MONGO_ANALYST_PASSWORD: Generate a password for the analyst database user.
    - (Other environment variables: the preset values should work for local development/testing)
 2. In the project root directory, run the commands below:
    ```shell
