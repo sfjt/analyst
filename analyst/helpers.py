@@ -13,9 +13,10 @@ def mongo_uri() -> str:
     """
     host = os.getenv("MONGO_HOST")
     port = int(os.getenv("MONGO_PORT"))
-    username = os.getenv("MONGO_USERNAME")
-    password = os.getenv("MONGO_PASSWORD")
-    return f"mongodb://{username}:{password}@{host}:{port}"
+    username = os.getenv("ANALYST_USERNAME")
+    password = os.getenv("ANALYST_PASSWORD")
+    db_name = os.getenv("DB_NAME")
+    return f"mongodb://{username}:{password}@{host}:{port}/{db_name}"
 
 
 def date_window(close_date_iso: str, n_days: int) -> tuple[str, str]:

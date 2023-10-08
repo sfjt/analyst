@@ -7,7 +7,7 @@ from analyst.helpers import mongo_uri, date_window
 
 def test_uri():
     uri = mongo_uri()
-    assert re.fullmatch(r"mongodb://.+:.+@.+:[0-9]+", uri)
+    assert re.fullmatch(r"mongodb://.+:.+@.+:[0-9]+/.+", uri)
 
 
 @pytest.mark.parametrize(

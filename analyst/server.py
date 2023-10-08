@@ -12,7 +12,7 @@ mongo = PyMongo(app)
 
 
 def get_collection(collection_name: str):
-    return mongo.cx[AnalystTaskBase.DB_NAME][collection_name]
+    return mongo.db[collection_name]
 
 
 def get_task_collection():

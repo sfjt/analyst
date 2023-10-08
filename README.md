@@ -14,11 +14,10 @@ A personal, experimental financial analysis tool.
 ### Start a development environment
 
 1. Rename `.env.example` to `.env` and specify these environment variables:
-   - POLYGON_API_KEY: The key you got in the prerequisites step #2.
-   - MONGO_HOST: Use `localhost` for local testing.
-   - MONGO_PORT: Can be anything for local testing. `27017` is the well-known port for MongoDB.
-   - MONGO_USERNAME: Can be anything for local testing. For example, `root`.
-   - MONGO_PASSWORD: Generate a random password.
+   - API_KEY: The key you got in the prerequisites step #2.
+   - MONGO_ROOT_PASSWORD: Generate a password for the root user.
+   - ANALYST_PASSWORD: Generate a password for the analyst database user.
+   - (Other environment variables: the preset values should work for local development/testing)
 2. In the project root directory, run the commands below:
    ```shell
    poetry config virtualenvs.in-project true # To create venv in the project directory.
