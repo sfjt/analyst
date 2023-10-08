@@ -3,8 +3,7 @@ from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from pandas import DataFrame
 
 from .helpers import mongo_uri
-from .web_api import GetStockDataTask
-from .screener import ScreenerTask
+from .screener import AnalystTaskBase
 from .algo.plot import simple_plot
 
 app = Flask(__name__)
@@ -13,20 +12,20 @@ mongo = PyMongo(app)
 
 
 def get_collection(collection_name: str):
-    db_name = ScreenerTask.DB_NAME
+    db_name = AnalystTaskBase.DB_NAME
     return mongo.cx[db_name][collection_name]
 
 
 def get_task_collection():
-    return get_collection(ScreenerTask.TASK_COLLECTION_NAME)
+    return get_collection(AnalystTaskBase.TASK_COLLECTION_NAME)
 
 
 def get_stock_data_collection():
-    return get_collection(ScreenerTask.STOCK_DATA_COLLECTION_NAME)
+    return get_collection(AnalystTaskBase.STOCK_DATA_COLLECTION_NAME)
 
 
 def get_screener_collection():
-    return get_collection(ScreenerTask.SCREENER_COLLECTION_NAME)
+    return get_collection(AnalystTaskBase.SCREENER_COLLECTION_NAME)
 
 
 @app.route("/", methods=["GET"])

@@ -7,6 +7,7 @@ from mongomock import MongoClient
 from analyst.server import app, mongo
 from analyst.screener import ScreenerTask
 from analyst.web_api import GetStockDataTask
+from analyst.task_base import AnalystTaskBase
 
 snapshot_file_path = Path.cwd() / "tests/fixtures/stock_snapshot.json"
 with open(snapshot_file_path, "r", encoding="utf-8") as f:
@@ -22,9 +23,9 @@ class TestServer:
         app.config["TESTING"] = True
         self.app = app.test_client()
 
-        db_name = ScreenerTask.DB_NAME
-        stock_data_collection_name = ScreenerTask.STOCK_DATA_COLLECTION_NAME
-        screener_collection_name = ScreenerTask.SCREENER_COLLECTION_NAME
+        db_name = AnalystTaskBase.DB_NAME
+        stock_data_collection_name = AnalystTaskBase.STOCK_DATA_COLLECTION_NAME
+        screener_collection_name = AnalystTaskBase.SCREENER_COLLECTION_NAME
         client = MongoClient()
         mongo.cx = client
         self.mock_db_client = client

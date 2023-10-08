@@ -5,6 +5,7 @@ from copy import deepcopy
 from mongomock import MongoClient
 
 from analyst.screener import ScreenerTask
+from analyst.task_base import AnalystTaskBase
 
 snapshot_file_path = Path.cwd() / "tests/fixtures/stock_snapshot.json"
 with open(snapshot_file_path, "r", encoding="utf-8") as f:
@@ -21,10 +22,10 @@ def pass_one(data):
 
 class TestScreenerTask:
     def setup_method(self):
-        db_name = ScreenerTask.DB_NAME
-        stock_data_collection_name = ScreenerTask.STOCK_DATA_COLLECTION_NAME
-        screener_collection_name = ScreenerTask.SCREENER_COLLECTION_NAME
-        task_collection_name = ScreenerTask.TASK_COLLECTION_NAME
+        db_name = AnalystTaskBase.DB_NAME
+        stock_data_collection_name = AnalystTaskBase.STOCK_DATA_COLLECTION_NAME
+        screener_collection_name = AnalystTaskBase.SCREENER_COLLECTION_NAME
+        task_collection_name = AnalystTaskBase.TASK_COLLECTION_NAME
         client = MongoClient()
         self.mock_db_client = client
         self.stock_data_collection = client[db_name][stock_data_collection_name]

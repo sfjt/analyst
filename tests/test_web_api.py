@@ -15,6 +15,7 @@ from analyst.web_api import (
     NoDataError,
     API_KEY,
 )
+from analyst.task_base import AnalystTaskBase
 
 snapshot_file_path = Path.cwd() / "tests/fixtures/stock_snapshot.json"
 with open(snapshot_file_path, "r", encoding="utf-8") as f:
@@ -60,10 +61,10 @@ class TestGetStockDataTask:
     def setup_method(self):
         client = MongoClient()
         self.mock_db_client = client
-        db_name = GetStockDataTask.DB_NAME
-        task_collection_name = GetStockDataTask.TASK_COLLECTION_NAME
-        stock_data_collection_name = GetStockDataTask.STOCK_DATA_COLLECTION_NAME
-        screener_collection_name = GetStockDataTask.SCREENER_COLLECTION_NAME
+        db_name = AnalystTaskBase.DB_NAME
+        task_collection_name = AnalystTaskBase.TASK_COLLECTION_NAME
+        stock_data_collection_name = AnalystTaskBase.STOCK_DATA_COLLECTION_NAME
+        screener_collection_name = AnalystTaskBase.SCREENER_COLLECTION_NAME
         self.task_collection = client[db_name][task_collection_name]
         self.stock_data_collection = client[db_name][stock_data_collection_name]
         self.screener_collection = client[db_name][screener_collection_name]
