@@ -13,11 +13,12 @@ with open(snapshot_file_path, "r", encoding="utf-8") as f:
 
 
 def pass_one(data):
-    if data["symbol"]["symbol"] == "ONE":
-        data_updated = deepcopy(data)
-        data_updated["updated"] = True
-        return True, data_updated
-    return False, None
+    updated = deepcopy(data)
+    updated["data"]["updated"] = True
+    result = False
+    if updated["symbol"]["symbol"] == "ONE":
+        result = True
+    return result, updated
 
 
 class TestScreenerTask:
@@ -72,7 +73,7 @@ class TestScreenerTask:
 
     def test_save_filter_result(self):
         task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)
-        task.filtered_symbols = ["ONE", "TWO"]
+        _ = [task._q_filtered_symbols.put(s) for s in ["ONE", "TWO"]]
         task.save_filter_result()
         filter_ = {"taskId": task.task_id}
         count = self.screener_collection.count_documents(filter_)
@@ -86,6 +87,10 @@ class TestScreenerTask:
         task.single_get_and_filter("TWO")
         assert len(task.filtered_symbols) == 1
         assert task.filtered_symbols[0] == "ONE"
+        one = self.stock_data_collection.find_one({"symbol.symbol": "ONE"})
+        two = self.stock_data_collection.find_one({"symbol.symbol": "TWO"})
+        assert one["data"]["updated"]
+        assert two["data"]["updated"]
 
     def test_run(self):
         task = ScreenerTask("TEST", self.dummy_task_id, pass_one, self.mock_db_client)

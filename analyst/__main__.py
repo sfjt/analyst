@@ -13,6 +13,14 @@ subparsers = parser.add_subparsers()
 
 parser_screener = subparsers.add_parser("screener")
 parser_screener.set_defaults(fn=run_screener_task)
+parser_screener.add_argument(
+    "target_task_id",
+    help=(
+        "A preceding task id: "
+        "it will be the population of the symbol names to be filtered."
+    ),
+    type=str,
+)
 
 parser_get_stock_data = subparsers.add_parser("getstockdata")
 parser_get_stock_data.add_argument(

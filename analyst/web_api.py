@@ -9,7 +9,6 @@ import requests
 from requests.adapters import HTTPAdapter, Retry
 from requests.exceptions import HTTPError
 import dotenv
-from pandas import DataFrame
 
 from analyst.task_base import AnalystTaskBase
 from analyst.helpers import date_window, mongo_uri
@@ -56,7 +55,6 @@ class GetStockDataTask(AnalystTaskBase):
         )
         if financials_quarter is None:
             return
-        financials_quarter = preprocess_financials(financials_quarter)
         from_, to = date_window(date.today().isoformat(), 365)
         prices = get_daily_prices(symbol_name, from_, to)
         if prices is None:
@@ -83,7 +81,7 @@ class GetStockDataTask(AnalystTaskBase):
             }
         )
 
-    def run(self, min_price: float):
+    def run(self, min_price: float):  # noqa
         """Get US stock ticker symbols and data
         And save it to the database.
         Also saves the list of the ticker symbols
@@ -136,7 +134,7 @@ class GetStockDataTask(AnalystTaskBase):
         self.mark_complete()
 
 
-def get(url: str, params: dict = {}):
+def get(url: str, params: dict = {}):  # noqa
     """Get data from the Financial Modeling Prep API.
     https://site.financialmodelingprep.com/developer/docs/
 
@@ -254,15 +252,6 @@ def run_get_stock_data_task(args):
         task.stock_data_collection.drop()
         task.run(args.minimum_price)
         logger.info(f"Complete. Task ID: {task.task_id}")
-
-
-def preprocess_financials(financials_quarter: dict):
-    q_df = DataFrame.from_dict(financials_quarter)
-    q_df = q_df.sort_values(by="date", ascending=True)
-    target_cols = ["revenue", "netIncome", "epsdiluted"]
-    for col in target_cols:
-        q_df[col + "YoYChange"] = q_df[col].pct_change(4)
-    return q_df.to_dict("records")
 
 
 class NoDataError(Exception):

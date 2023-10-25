@@ -1,12 +1,16 @@
 import logging.config
 from typing import Callable
 from concurrent.futures import ThreadPoolExecutor
+from queue import Queue
+from copy import deepcopy
 
 from pymongo import MongoClient
 from dotenv import load_dotenv
+from pandas import DataFrame
 
 from .task_base import AnalystTaskBase
 from .helpers import mongo_uri
+from .algo.filter import latest_yoy_growth_ratio
 
 load_dotenv()
 
@@ -25,6 +29,7 @@ class ScreenerTask(AnalystTaskBase):
         db_client: MongoClient,
     ):
         """A task filters the stock data saved in the database.
+        [Side Effect] It will update the source stock data on running.
 
         :param description: A description of the task.
         :param target_task_id: The task id of a ScreenerTask.
@@ -33,13 +38,17 @@ class ScreenerTask(AnalystTaskBase):
         """
         super().__init__(description, db_client)
         self.source_symbols = []
-        self.filtered_symbols = []
+        self._q_filtered_symbols = Queue()
         self._filter_fn = filter_fn
         self._target_task_id = target_task_id
 
     @property
     def task_type(self):
         return ScreenerTask.TASK_TYPE
+
+    @property
+    def filtered_symbols(self):
+        return list(self._q_filtered_symbols.queue)
 
     def single_get_and_filter(self, symbol_name: str):
         """Gets a single stock data from the database
@@ -51,16 +60,22 @@ class ScreenerTask(AnalystTaskBase):
         """
         data = self.get_stock_data_from_db(symbol_name)
         try:
-            filter_result, data_updated = self._filter_fn(data)
+            filter_result, updated = self._filter_fn(data)
         except Exception as err:
             logger.error(
                 f"Exception while applying the filter function to {symbol_name}"
             )
             logger.exception(err)
             return
-
+        filter_ = {
+            "taskId": self._target_task_id,
+            "symbol.symbol": symbol_name,
+        }
+        self.stock_data_collection.update_one(
+            filter_, {"$set": {"data": updated["data"]}}
+        )
         if filter_result:
-            self.filtered_symbols.append(symbol_name)
+            self._q_filtered_symbols.put(symbol_name)
 
     def get_stock_data_from_db(self, symbol_name: str) -> dict:
         """Gets a single stock data from the database.
@@ -114,7 +129,20 @@ class ScreenerTask(AnalystTaskBase):
         self.mark_complete()
 
 
-def run_screener_task():
+def run_screener_task(args):
     """Runs a screener task"""
+
+    def fn(data):
+        q_financials = data["data"]["financial_statements"]["quarter"]
+        df = DataFrame.from_records(q_financials)
+        filter_result, updated_df = latest_yoy_growth_ratio(df, "epsdiluted", 0.2)
+        updated = deepcopy(data)
+        updated["data"]["financial_statements"]["quarter"] = updated_df.to_dict(
+            "records"
+        )
+        return filter_result, updated
+
     with MongoClient(mongo_uri()) as mongo_client:
-        pass
+        task = ScreenerTask("Screener", args.target_task_id, fn, mongo_client)
+        task.run()
+        logger.info(f"Complete. Task ID: {task.task_id}")

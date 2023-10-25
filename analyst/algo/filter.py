@@ -2,6 +2,35 @@ from pandas import DataFrame
 import numpy as np
 
 
+def latest_yoy_growth_ratio(
+    df: DataFrame, col: str, threshold_pct: float
+) -> tuple[bool, DataFrame]:
+    """Checks if the latest year-over-year growth ratio for the specified column
+    is more than or equal to the threshold.
+
+    :param df: A DataFrame for quarterly financials.
+    :param col: The target column/data name
+        you want to evaluate the year-over-year growth.
+    :param threshold_pct: The threshold percent in float.
+        For example, 0.2 for 20%.
+    :return: Whether the growth ratio is more than or equal to the threshold:
+        True/False.
+    """
+    df = df.sort_values(by="date", ascending=True)
+    col_change = f"{col}YoYChangePct"
+    col_prev = f"{col}PrevYear"
+    q = 4
+
+    df[col_prev] = df[col].shift(q)
+    df[col_change] = (df[col] - df[col_prev]) / abs(df[col_prev])
+
+    filter_result = False
+    if df.iloc[-1][col_change] >= threshold_pct:
+        filter_result = True
+
+    return filter_result, df
+
+
 def up_x_times_from_lowest(
     df: DataFrame, x: float, min_: float = -1.0
 ) -> tuple[bool, DataFrame]:

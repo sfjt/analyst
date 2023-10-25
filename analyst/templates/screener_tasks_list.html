@@ -14,7 +14,7 @@
     <ul>
       {% for t in screener_tasks %}
         {% if t.complete %}
-          <li><a href="/screener/{{ t.task_id }}/1">
+          <li><a href="/screener/{{ t.taskId }}/1">
             {{ t.description }} (Complete. Ended at: {{ t.ended }})
           </a></li>
         {% else %}

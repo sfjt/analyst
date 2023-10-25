@@ -12,7 +12,6 @@ from analyst.web_api import (
     get_ticker_symbols,
     get_daily_prices,
     get_financial_statements,
-    preprocess_financials,
     NoDataError,
 )
 from analyst.task_base import AnalystTaskBase
@@ -279,11 +278,3 @@ def test_get_ticker_symbols(mocker):
         "NASDAQ_PASS_2",
         "NYSE_PASS_1",
     ]
-
-
-def test_preprocess_financials():
-    financial_statements = stock_snapshot["data"]["financial_statements"]["quarter"]
-    preprocessed = preprocess_financials(financial_statements)
-    assert "revenueYoYChange" in preprocessed[-1]
-    assert "epsdilutedYoYChange" in preprocessed[-1]
-    assert "netIncomeYoYChange" in preprocessed[-1]
