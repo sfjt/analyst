@@ -1,6 +1,7 @@
 from flask import Flask, render_template, Response, request
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from pandas import DataFrame
+from operator import itemgetter
 
 from .helpers import mongo_uri
 from .algo.plot import simple_plot
@@ -72,8 +73,15 @@ def screener_result_list(task_id, page):
     }
 
     data = []
+    num_quarters = 4
     for s in stock_data_cursor.skip(num_displayed).limit(num_per_page):
-        data.append({"symbol": s["symbol"]["symbol"]})
+        q_financials = s["data"]["financial_statements"]["quarter"]
+        q_financials = sorted(q_financials, key=itemgetter("date"), reverse=True)
+        q_financials = q_financials[0:num_quarters]
+        data.append({
+            "symbol": s["symbol"]["symbol"],
+            "financials": q_financials,
+        })
 
     return render_template(
         "screener_stock_data.html",
@@ -98,3 +106,10 @@ def simple_candlestick_chart(symbol):
     chart_image = simple_plot(df_prices, days, w, h)
 
     return Response(chart_image, content_type="image/jpeg")
+
+
+@app.context_processor
+def template_helpers():
+    def format_pct(p: float):
+        return round(p * 100, 2)
+    return dict(format_pct=format_pct)

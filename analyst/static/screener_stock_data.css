@@ -1,0 +1,13 @@
+table.financials {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+table.financials td, table.financials th {
+    border: 1px solid black;
+    padding: 0.1em 0.5em;
+}
+
+table.financials th {
+    background-color: azure;
+}
