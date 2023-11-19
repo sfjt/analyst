@@ -10,7 +10,9 @@
 
     {% for d in data %}
       <h2>{{ d.symbol }}</h2>
-      <p><a href="/chart/simple/{{ d.symbol }}" target="_blank"/>Chart</a></p>
+      <div>
+        <button data-symbol="{{ d.symbol }}" type="button" class="btn_display_chart">Chart</button>
+      </div>
       <table class="financials">
         <tr>
           <th>Date</th>
@@ -21,7 +23,7 @@
           <tr>
             <td>{{ f.date }}</td>
             <td>{{ f.epsdiluted }}</td>
-            <td>{{ format_pct(f.epsdilutedYoYChangePct) }}</td>
+            <td>{{ format_pct(fill_na(f.epsdilutedYoYChangePct)) }}</td>
           </tr>
         {% endfor %}
       </table>
@@ -33,5 +35,7 @@
     {% if pagination.next %}
       <a href="/screener/{{ task_id }}/{{ pagination.next }}">next &gt;</a>
     {% endif %}
+
+    <script src="{{ url_for('scripts', filename='display_chart.js') }}"></script>
   </body>
 </html>

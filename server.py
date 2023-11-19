@@ -1,10 +1,11 @@
-from flask import Flask, render_template, Response, request
+from flask import Flask, render_template, Response, request, send_from_directory
 from flask_pymongo import PyMongo, ASCENDING, DESCENDING
 from pandas import DataFrame
 from operator import itemgetter
 
-from .helpers import mongo_uri
-from .algo.plot import simple_plot
+from analyst.helpers import mongo_uri
+from analyst.algo.plot import simple_plot
+from jinja2.exceptions import UndefinedError
 
 app = Flask(__name__)
 app.config["MONGO_URI"] = mongo_uri()
@@ -78,10 +79,12 @@ def screener_result_list(task_id, page):
         q_financials = s["data"]["financial_statements"]["quarter"]
         q_financials = sorted(q_financials, key=itemgetter("date"), reverse=True)
         q_financials = q_financials[0:num_quarters]
-        data.append({
-            "symbol": s["symbol"]["symbol"],
-            "financials": q_financials,
-        })
+        data.append(
+            {
+                "symbol": s["symbol"]["symbol"],
+                "financials": q_financials,
+            }
+        )
 
     return render_template(
         "screener_stock_data.html",
@@ -108,8 +111,42 @@ def simple_candlestick_chart(symbol):
     return Response(chart_image, content_type="image/jpeg")
 
 
+@app.route("/scripts/<path:filename>")
+def scripts(filename):
+    return send_from_directory("./client/builds", filename)
+
+
 @app.context_processor
-def template_helpers():
-    def format_pct(p: float):
-        return round(p * 100, 2)
-    return dict(format_pct=format_pct)
+def format_pct():
+    def fn(pct: any):
+        if not type(pct) is float:
+            return pct
+        return round(pct * 100, 2)
+
+    return dict(format_pct=fn)
+
+
+@app.context_processor
+def format_num():
+    def fn(n: any):
+        is_int_or_float = type(n) is int or type(n) is float
+        if not is_int_or_float:
+            return n
+        i = 0
+        while abs(n) >= 1000:
+            i += 1
+            n /= 1000
+        return "%.2f%s" % (n, ["", "K", "M", "G", "T", "P"][i])
+
+    return dict(format_num=fn)
+
+
+@app.context_processor
+def fill_na():
+    def fn(v: any):
+        try:
+            return v
+        except UndefinedError:
+            return None
+
+    return dict(fill_na=fn)

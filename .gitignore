@@ -10,3 +10,6 @@ __pycache__/
 tests/fixtures/polygon_rest/aggregates.json
 
 mount/mongo/data/
+
+node_modules/
+client/builds/

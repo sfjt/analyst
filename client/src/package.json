@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "build": "esbuild display_chart.ts --bundle --outfile=../builds/display_chart.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.19.5"
+  }
+}

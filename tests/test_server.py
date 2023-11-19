@@ -4,7 +4,7 @@ from copy import deepcopy
 
 from mongomock import MongoClient
 
-from analyst.server import app, mongo
+from server import app, mongo
 from analyst.screener import ScreenerTask
 from analyst.web_api import GetStockDataTask
 from analyst.task_base import AnalystTaskBase
