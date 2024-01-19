@@ -23,7 +23,7 @@ pytest = "^7.4.2"
 pytest-dotenv = "^0.5.2"
 mongomock = "^4.1.2"
 pytest-mock = "^3.11.1"
-jupyterlab = "^4.0.6"
+jupyterlab = "^4.0.11"
 
 [build-system]
 requires = ["poetry-core"]
